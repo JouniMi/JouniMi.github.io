@@ -13,6 +13,7 @@ ruby RUBY_VERSION
 #gem "github-pages", "~> 232", group: :jekyll_plugins
 gem 'wdm', '>= 0.1.0' if Gem.win_platform?
 group :jekyll_plugins do
+    gem 'jekyll-analytics'
     gem 'jekyll-feed'
     gem 'jekyll-sitemap'
     gem 'jekyll-paginate'
