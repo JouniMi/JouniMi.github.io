@@ -5,6 +5,7 @@ tags: [crowdstrike, defender for endpoint, kql, mde, spl, threat hunting, featur
 author: jouni
 image: assets/images/mitre_attack-1024x293.png
 comments: false
+categories: [ threat hunting ]
 ---
 
 # How to start with host based threat hunting?

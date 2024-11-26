@@ -5,6 +5,7 @@ tags: [scheduled tasks, defender for endpoint, kql, mde, threat hunting]
 author: jouni
 image: assets/images/ps1.png
 comments: false
+categories: [ threat hunting ]
 ---
 
 Microsoft DART released [an article](https://www.microsoft.com/security/blog/2022/04/12/tarrask-malware-uses-scheduled-tasks-for-defense-evasion/) yesterday of how the malware known as Tarrask has been using scheduled tasks for defense evasion. This malware has been in use by an APT group known as HAFNIUM, likely most notable known by leveraging the 0-day known as ProxyShell a year ago.
