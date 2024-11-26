@@ -3,7 +3,7 @@ layout: post
 title:  "Impacket - Part 3"
 tags: [threat hunting, defender for endpoint, kql, impacket]
 author: jouni
-image: assets/images/impacket3_logo.png)
+image: assets/images/impacket3_logo.png
 comments: false
 categories: [ threat hunting ]
 ---
