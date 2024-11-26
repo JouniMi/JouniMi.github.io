@@ -4,6 +4,7 @@ title:  "How to start with host based threat hunting?"
 tags: [crowdstrike, defender for endpoint, kql, mde, spl, threat hunting]
 author: jouni
 image: assets/images/mitre_attack-1024x293.png
+comments: false
 ---
 
 # How to start with host based threat hunting?
@@ -18,48 +19,40 @@ However, many of the EDR tools especially now offers a great query language to b
 
 Getting started with the actual query languages can be a daunting task. However, there is a lot of examples in the internet that can be used to get started with the language. Start with easy queries: learn how to query for different kind of cmdlines for example. This is easy and can help you to find the potential adversaries. The following example shows a VERY simple query to look for encoded Power Shell being launched. Keep in mind that this simple query can also return false-positives. Even MDE runs some encoded commands from time to time.
 
-```
-DeviceProcessEvents 
-// Set the query lookup time. I like to do this in the queries rather than in the GUI
-| where Timestamp > ago(14d) 
-// Filter to powershell processes. Use ~ for case-insensitive approach.
-| where FileName =~ "powershell.exe" or FileName =~ "pwsh.exe"
-// Filter to processes where the launched processes commandline contains letters "enc". This is to 
-| where ProcessCommandLine contains @"-enc"
-```
+    DeviceProcessEvents 
+    // Set the query lookup time. I like to do this in the queries rather than in the GUI
+    | where Timestamp > ago(14d) 
+    // Filter to powershell processes. Use ~ for case-insensitive approach.
+    | where FileName =~ "powershell.exe" or FileName =~ "pwsh.exe"
+    // Filter to processes where the launched processes commandline contains letters "enc". This is to 
+    | where ProcessCommandLine contains @"-enc"
 
 Get familiar with the simpler queries first. The KQL language offers a ton of different ways to query the data and supports great statistical filtering of the data. Continuing with the first example. Get the same data but count how many times an encoded command has been launched on each device.
 
-```
-DeviceProcessEvents 
-| where Timestamp > ago(14d) 
-| where FileName =~ "powershell.exe" or FileName =~ "pwsh.exe"
-| where ProcessCommandLine contains @"-enc"
-| summarize count() by DeviceName
-```
+    DeviceProcessEvents 
+    | where Timestamp > ago(14d) 
+    | where FileName =~ "powershell.exe" or FileName =~ "pwsh.exe"
+    | where ProcessCommandLine contains @"-enc"
+    | summarize count() by DeviceName
 
 # After the basics
 
 Many blog posts are discussing different methodology that can be used within threat hunting and those are GREAT resources for generating the threat hunting process and methodology. However, more concrete data helped me to get started before moving on to more hypotheses driven approach.
 
-I love the Mitre [ATT&CK matrix][https://attack.mitre.org/]. It offers details on many relevant techniques that are being used in the real world by many attackers. It also offers examples of how different APT groups might have been using different techniques in the past. To me, Mitre ATT&CK has been a basis of many hunting queries targeting the techniques used by the actual attackers.
+I love the Mitre [ATT&CK matrix](https://attack.mitre.org/). It offers details on many relevant techniques that are being used in the real world by many attackers. It also offers examples of how different APT groups might have been using different techniques in the past. To me, Mitre ATT&CK has been a basis of many hunting queries targeting the techniques used by the actual attackers.
 
-![](assets/images/mitre_attack-1024x293.png)
+![]({{ site.baseurl }}/assets/images/mitre_attack-1024x293.png)
 _Image from Mitre ATT&CK website,_ https://attack.mitre.org/.
 
-```
-DeviceProcessEvents 
-| where Timestamp > ago(14d) 
-| where ProcessCommandLine contains "/add"
-```
+    DeviceProcessEvents 
+    | where Timestamp > ago(14d) 
+    | where ProcessCommandLine contains "/add"
 
 MDE does also save the account creation event to the DeviceEvents -table (which includes a ton of interesting events proving additional value - like named pipes). This can be queried with the following query:
 
-```
-DeviceEvents 
-| where Timestamp > ago(14d) 
-| where ActionType == 'UserAccountCreated'
-```
+    DeviceEvents 
+    | where Timestamp > ago(14d) 
+    | where ActionType == 'UserAccountCreated'
 
 This example has been extremely simple, only stating how you can get started with creating usable queries targeting a Mitre technique. When understanding the KQL better it makes it much easier to create more elaborate queries and to target "the harder to catch" -techniques. In the end, the focus should be on the techniques that are hard to catch with SIEM / MDE detection rules - if the created query is not very noisy then it should likely be turned into detection rule instead.
 

@@ -6,7 +6,6 @@ favicon: 'assets/images/favicon.ico'
 baseurl: ''
 disqus: ''
 email: ''
-mailchimp-list: ''
 
 include: ["_pages"]
 permalink: /:title/
@@ -19,7 +18,7 @@ plugins:
   - jekyll-seo-tag
   
 authors:
-    sal:
+    jouni:
       name:           Jouni
       site:           https://threathunt.blog/
       avatar:         /assets/images/avatar1.jpg
