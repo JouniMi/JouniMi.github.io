@@ -1,0 +1,84 @@
+---
+layout: post
+title:  "Hunting for Windows Subsystem for Linux based attacks"
+tags: [threat hunting, kql, mde, wsl, featured]
+author: jouni
+image: assets/images/IMG_0107.png
+comments: false
+categories: [ threat hunting ]
+---
+
+Hunting for WSL based Badness
+=============================
+
+Windows Subsystem for Linux has been a thing for a long while and has been extended to version 2 already years ago. It is an amazing feature which allows you to, well, run lightweight linux on top of Windows OS. It offers the linux capabilities which many of us may be missing when using Windows and is very neatly integrated to the operating system.
+
+This is a great little feature for sysadmins, cyber security experts and the likes whom enjoy using linux but may be stuck with using Windows for whatever reason. However, I was wondering if it is possible to detect usage of potentially malicious techniques through WSL when utilizing Defender for Endpoint. I installed WSL to my lab and ran couple of commands:
+
+*   Ran bloodhound to dump information from the domain.
+*   I ran an NMAP scan to the local network.
+
+![]({{ site.baseurl }}/assets/images/IMG_0107.png)
+
+Results
+=======
+
+I used the bloodhound.py package to run the bloodhound tool from the WSL. It ran successfully, generating the .JSON files with the information from the Active Directory. If I would run Sharphound on the Windows host with MDE agent I would get a ton of alerts, the file creations and the LDAP queries towards the Domain Controllers.
+
+Now that I ran it from WSL I got nothing of those.
+
+![]({{ site.baseurl }}/assets/images/Screenshot-2024-10-26-at-17.41.44.png)
+File creations, where art thee?
+
+Same with the ldap queries which are normally saved to the DeviceEvents table. They were nowhere to be seen. I think this was quite expected results given the way how the EDR works though, so I wasn't very surprised.
+
+So how about nmap? Well I was half expecting that because of the zeek integration this would potentially be picked up on the network events table, however it seems that there is nothing relating to this activity. Not ideal then, it seems that pretty much nothing is observed when things are being done within the WSL. I made couple of web requests with wget to test if the http connections are saved.
+
+![]({{ site.baseurl }}/assets/images/Screenshot-2024-10-26-at-18.14.05.png)
+Wget results are shown!
+
+These are seen so it is not all in vain. This information could potentially be used to hunt for C2 connections or similar. However it will be very hard to use this information. I think that if it is encrypted like almost all the malicious traffic is now there isn't anything saved. In the end this seems to be very hard topic _if things are done interactively._ It is whole another matter if the threat actor is running commands as part of the cmdline:
+
+![]({{ site.baseurl }}/assets/images/Screenshot-2024-10-26-at-18.34.55.png)
+Running commands as part of cmdline
+
+This leaves the cmdline exposed so that it can be analyzed as we can see from the following picture:
+
+![]({{ site.baseurl }}/assets/images/Screenshot-2024-10-26-at-18.41.55.png)
+Commandlines may expose Evilness.
+
+Given that this is relatively simple hunting method I don't really bother releasing a query for this. You could just look for rare commandlines and be done with it. However, it was a good to learn that if an attacker is running WSL in interactive mode there is little to none evidence left to Defender for Endpoint to hunt for badness; linux based forensic approach would likely be needed if there is an assumption that a threat actor has been utilising WSL.
+
+Microsoft Defender for Endpoint plugin for WSL
+----------------------------------------------
+
+Microsoft has released a plugin to tackle this issue. This has been documented [here](https://learn.microsoft.com/en-us/defender-endpoint/mde-plugin-wsl). I installed the plugin per instructions. After installing this we can see additional endpoint in the asset inventory:
+
+![]({{ site.baseurl }}/assets/images/Screenshot-2024-11-10-at-12.09.27.png)
+WSL endpoint in the asset inventory.
+
+Most of the events observed on the WSL endpoint are process events:
+
+![]({{ site.baseurl }}/assets/images/Screenshot-2024-11-10-at-12.26.20.png)
+Event counts from the WSL endpoint.
+
+For example, files created by BloodHound are not part of the telemetry. However, the network connections are. The telemetry provided from the WSL host is less rich than from the native agent, however it is still bringing visibility to where there was no visibility before. We could use a query like the following to list actions available from the processes launched in interactive WSL session:
+
+    let wsl_endpoints = DeviceInfo
+    | where OSPlatform == "Linux" and isempty(HostDeviceId) != true
+    | distinct DeviceId;
+    union DeviceEvents, DeviceFileEvents, DeviceImageLoadEvents, DeviceLogonEvents, DeviceNetworkEvents, DeviceProcessEvents, DeviceRegistryEvents
+    | where DeviceId in (wsl_endpoints)
+    | where isnotempty(InitiatingProcessFileName)
+    | sort by Timestamp desc
+    | summarize Actions = make_set(ActionType), FileNames = make_set(FileName), RemoteIPs = make_set(RemoteIP) by InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessParentFileName, DeviceName
+    
+
+ The query uses the example from the Microsoft documentation to pinpoint WSL endpoints and then lists all actions from these endpoints. For example, successful BloodHound execution shows like this:
+
+![]({{ site.baseurl }}/assets/images/Screenshot-2024-11-10-at-12.39.06.png)
+Successful BloodHound execution.
+
+When running nmap scan on the local network no network connections were logged to the WSL endpoint though. The process start for NMAP was recorded but nothing else. What this means is that I'd say the best way to hunt within the WSL host is by commandlines. This can be done with several means like targeting directly certain interesting commands or running statistical analysis (like long-tail analysis) to filter out the noise. It is not the most elaborate way of threat hunting (and it has the same issues as process cmdline based hunting does otherwise) but it is still way better than having no visibility to WSL.
+
+Without the WSL addon for Defender for Endpoint the visibility is zero if commands are being ran interactively within the WSL endpoint. The addon brings visibility to the endpoint, it may not be as good as native Windows client but it is still much better than having nothing. It seems though there are no alerts brought up from the WSL endpoint. If you have WSL enabled within your environment I'd really suggest deploying the WSL addon to the devices and then run some proactive threat hunting to find potential threat actors utilising the feature for malicious activity.

