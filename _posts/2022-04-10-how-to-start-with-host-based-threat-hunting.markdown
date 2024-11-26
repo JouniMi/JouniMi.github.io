@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "How to start with host based threat hunting?"
-tags: [crowdstrike, defender for endpoint, kql, mde, spl, threat hunting]
+tags: [crowdstrike, defender for endpoint, kql, mde, spl, threat hunting, featured]
 author: jouni
 image: assets/images/mitre_attack-1024x293.png
 comments: false
