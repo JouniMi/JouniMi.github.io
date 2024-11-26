@@ -22,13 +22,13 @@ Running regedit and checking the registry location for the scheduled tasks it ca
 
 Finding the created task can be done in multiple ways with MDE, however here is a way to do it using the registry data.
 
-    {% highlight %}
+    ```
     DeviceRegistryEvents
     | where Timestamp > ago(1h)
     | where ActionType == @"RegistryKeyCreated"
     | where RegistryKey startswith @"HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Schedule\TaskCache\Tree\"
     | project Timestamp, DeviceName, ActionType, InitiatingProcessFileName, RegistryKey
-    {% endhighlight %}
+    ```
     
 
 The last project line sets the fields that are being returned by the query. The actual process that creates this registry entry is noted in the InitiatingProcessFileName column. The following picture shows that it is recorded as svchost.exe.
@@ -44,22 +44,22 @@ Running the same command as SYSTEM works fine.
 \[caption id="attachment\_96" align="alignnone" width="1396"\]![](assets/images/assystem_notask.png) _Removing the SD key as system. No task left in task scheduler GUI._\[/caption\]
 
 Looking for this event in Defender for Endpoint proved a little bit problematic. Going through all the removed registry keys and values did not yield results. It seems that this might be a decision from Microsoft where the data has been left out. It is understandable that not everything is actually being saved as the amount of data that Microsoft has to handle is absolutely huge. Could also be a mistake in my query of course, which is shared below.
-    {% highlight %}
+    ```
     DeviceRegistryEvents
     | where Timestamp > ago(1h)
     | where PreviousRegistryKey contains "HKEY_LOCAL_MACHINE"
     | where ActionType == 'RegistryKeyDeleted' or ActionType == 'RegistryValueDeleted'
-    {% endhighlight %}
+    ```
     
 
 When logging back in to the device calc.exe is still being executed as to be expected. With a more mature threat hunting program this likely does not matter much as the anomalies in the scheduled tasks creations are likely being already monitored. There are some issues with this approach, mainly because the process that actually created the scheduled task is not revealed in the advanced hunting data, however this can be worked around with multiple methods.
 
 I removed the scheduled task key created to registry using the PowerShell as a system. It seems that this was also not saved in MDE.I removed the GUID based registry key for the task using RegEdit.exe and it was recorded by MDE. Not sure if this could be somehow related to my testing environment but at least this time it seems that the reg mods done as a system did not get recorded.  For further investigation purposes, I also created a new scheduled task as a system. The registry key creation was not recorder from this either, however the creation was saved to the DeviceEvents table and could be found with the following query.
-    {% highlight %}
+    ```
     DeviceEvents
     | where Timestamp > ago(1h)
     | where ActionType == 'ScheduledTaskCreated'
-    {% endhighlight %}
+    ```
     
 
 When I started to write this post about this little niche I thought that this would be quick and easy. I would have liked to present a query to find the events where the attackers might have been trying to evade the defenses by hiding the scheduled task based persistence. As often is, for some reason it wasn't as easy as thought and some hiccups were discovered while at it. It seems that either by testing environment is having issues or registry activity using system account is at least not always being saved.

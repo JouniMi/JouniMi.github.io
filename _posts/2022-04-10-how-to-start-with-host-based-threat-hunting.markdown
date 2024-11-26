@@ -18,7 +18,7 @@ However, many of the EDR tools especially now offers a great query language to b
 
 Getting started with the actual query languages can be a daunting task. However, there is a lot of examples in the internet that can be used to get started with the language. Start with easy queries: learn how to query for different kind of cmdlines for example. This is easy and can help you to find the potential adversaries. The following example shows a VERY simple query to look for encoded Power Shell being launched. Keep in mind that this simple query can also return false-positives. Even MDE runs some encoded commands from time to time.
 
-{% highlight %}
+```
 DeviceProcessEvents 
 // Set the query lookup time. I like to do this in the queries rather than in the GUI
 | where Timestamp > ago(14d) 
@@ -26,17 +26,17 @@ DeviceProcessEvents
 | where FileName =~ "powershell.exe" or FileName =~ "pwsh.exe"
 // Filter to processes where the launched processes commandline contains letters "enc". This is to 
 | where ProcessCommandLine contains @"-enc"
-{% endhighlight %}
+```
 
 Get familiar with the simpler queries first. The KQL language offers a ton of different ways to query the data and supports great statistical filtering of the data. Continuing with the first example. Get the same data but count how many times an encoded command has been launched on each device.
 
-{% highlight %}
+```
 DeviceProcessEvents 
 | where Timestamp > ago(14d) 
 | where FileName =~ "powershell.exe" or FileName =~ "pwsh.exe"
 | where ProcessCommandLine contains @"-enc"
 | summarize count() by DeviceName
-{% endhighlight %}
+```
 
 # After the basics
 
@@ -47,19 +47,19 @@ I love the Mitre [ATT&CK matrix][https://attack.mitre.org/]. It offers details o
 ![](assets/images/mitre_attack-1024x293.png)
 _Image from Mitre ATT&CK website,_ https://attack.mitre.org/.
 
-{% highlight %}
+```
 DeviceProcessEvents 
 | where Timestamp > ago(14d) 
 | where ProcessCommandLine contains "/add"
-{% endhighlight %}
+```
 
 MDE does also save the account creation event to the DeviceEvents -table (which includes a ton of interesting events proving additional value - like named pipes). This can be queried with the following query:
 
-{% highlight %}
+```
 DeviceEvents 
 | where Timestamp > ago(14d) 
 | where ActionType == 'UserAccountCreated'
-{% endhighlight %}
+```
 
 This example has been extremely simple, only stating how you can get started with creating usable queries targeting a Mitre technique. When understanding the KQL better it makes it much easier to create more elaborate queries and to target "the harder to catch" -techniques. In the end, the focus should be on the techniques that are hard to catch with SIEM / MDE detection rules - if the created query is not very noisy then it should likely be turned into detection rule instead.
 
