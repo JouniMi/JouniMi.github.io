@@ -2,8 +2,7 @@
 title: "About"
 layout: page-sidebar
 permalink: "/about.html"
-image: ""
-comments: true
+comments: false
 ---
 <p class="">Hello all!</p>
 
