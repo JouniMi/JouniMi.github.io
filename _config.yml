@@ -1,5 +1,5 @@
 # Site
-name: 'Threat hunting'
+name: 'Threathunt.blog'
 description: 'Threat hunting with hints of incident response.'
 logo: 'assets/images/logo.png'
 favicon: 'assets/images/favicon.ico'
@@ -21,7 +21,7 @@ authors:
     jouni:
       name:           Jouni
       site:           https://threathunt.blog/
-      avatar:         /assets/images/avatar1.jpg
+      avatar:         assets/images/jouniavatar.jpg
       bio:            "Threat hunting nerd."
 
 # Defaults
