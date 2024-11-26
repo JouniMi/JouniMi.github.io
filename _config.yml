@@ -16,6 +16,12 @@ plugins:
   - jekyll-sitemap
   - jekyll-paginate
   - jekyll-seo-tag
+  - jekyll-analytics
+
+jekyll_analytics:
+  GoogleAnalytics:          # Add, if you want to track with Google Analytics
+    id: G-4F0S4LY90G          # Required - replace with your tracking id
+    anonymizeIp: false
   
 authors:
     jouni:
