@@ -102,7 +102,8 @@ There are options at this point. You could look into the service creation or lau
 
 Moving on to the smbexec. It is less verbose when executed but essentially it is the same which is why I do not add a picture of the shell running the command. I am quite interested to see how much this differs from the RemCom based module though.  Defender was super unhappy with this one and immediately detected it as Impacket:
 
-\[caption id="attachment\_515" align="aligncenter" width="1342"\]![]({{ site.baseurl }}/assets/images/hands_on_keyboard.png) Hands on keyboard activity as alerted by Defender when running smbexec\[/caption\]
+![]({{ site.baseurl }}/assets/images/hands_on_keyboard.png)
+Hands on keyboard activity as alerted by Defender when running smbexec
 
 Sooooo yeah, a lot of details also included. What is more interesting is that with default settings the Defender XDR started remediation already without asking me. It was stated that the user account was disabled (though I don't know how as it is an AD account and I have no Defender for Identity installed). Nevertheless, my RDP connection was dropped and denied shortly after. While browsing the GUI of Defender I found this:
 
