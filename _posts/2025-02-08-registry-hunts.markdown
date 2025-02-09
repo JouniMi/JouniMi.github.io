@@ -113,3 +113,5 @@ Queries in GUI
 I also noticed that the queries I've been submitting to the MS repo have been now added to the hunting GUI which is great to see! Here is a picture of one of the queries. Love the easy accessibility.
 
 ![]({{ site.baseurl }}/assets/images//registry/queryingui.png)
+
+Microsoft Repo PR: https://github.com/Azure/Azure-Sentinel/pull/11781
