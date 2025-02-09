@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Look into couple of potential registry based maliciousness"
+title:  "Look into couple of suspicous registry activities"
 tags: [threat hunting, kql, mde, featured]
 author: jouni
 image: assets/images/registry/reg_target.png
@@ -8,16 +8,16 @@ comments: false
 categories: [ threat hunting ]
 ---
 
-Look into couple of potential registry based maliciousness
+Look into couple of suspicous registry activities
 =============================
 
-t has been a long time since the last post I made. Since then you may see that I have upgrad... changed the look and feel of this blog. The reason for that is I got fed-up with Wordpress and hosting it and decided to see if it would be easy enough to migrate to Github Pages. It was as you may guess. Github pages seems to work great.
+It has been a long time since the last post. Since then you may see that I have upgrad... changed the look and feel of this blog. The reason for that is I got fed-up with Wordpress and hosting it and decided to see if it would be easy enough to migrate to Github Pages. It was as you may guess. Github pages seems to work great.
 
-I haven't really had any ideas of what to blog about which is why it has been a bit.. quiet. I got an idea of looking into the registry and trying to find malicious powershell/whatever based keys being created. So that is how I am going start this blog post, look into suspicious ..stuff.. being created in more general level to registry. I may dabble into runkeys but likely will leave that for another time.
+I haven't really had any ideas of what to blog about which is why it has been a bit.. quiet. I got an idea of looking into the registry and trying to find malicious powershell/whatever keys being created. So that is how I am going start this blog post, look into suspicious ..stuff.. being created in more general level to registry. I may dabble into runkeys but likely will leave that for another time.
 
 Encoded commands
 =======
-Encoded commands in registry entries can be a sign of potential malicious activity. This post will explore some KQL queries that can help detect such activity. The first query I did is really simple. I am just trying to find encoded commands, nothing else. 
+Encoded commands in registry entries can be a sign of potential malicious activity. This post will explore some KQL queries that can help detect such activity. The first query I created is really simple. I am just trying to find encoded commands, nothing else. 
 
     DeviceRegistryEvents
     | where Timestamp > ago(30d)
@@ -29,7 +29,7 @@ Encoded commands in registry entries can be a sign of potential malicious activi
     | project Timestamp, DeviceName, DecodedCommand, RegistryValueData, RegistryKey, RegistryValueName, RegistryValueType, PreviousRegistryValueData, InitiatingProcessFileName, InitiatingProcessCommandLine, InitiatingProcessParentFileName
 
 
-The reason for looking broadly into encoded commands is that this value could be read with powershell and then executed as encoded command. This could have other purposes but I remember a few incidents where I have seen encoded powershell being saved to registry.
+The reason for looking broadly into encoded commands is that this value could be read with powershell and then executed as encoded command. This could have other purposes but I remember a few incidents where I have seen encoded powershell commands being saved to registry.
 
 The problem with this query is that it is very broad. It is looking into all the registry additions and changes (well the ones which are recorded by MDE anyway) and thus it may not be runnable in this format in large environments.  The best way to limit would be to limit the time/devices we are looking at, for example only look into past day or few and potentially automate launching the query through the API.
 
@@ -40,7 +40,7 @@ This was not unfortunately logged with MDE. Seems this path is not logged at all
 
 ![]({{ site.baseurl }}/assets/images//registry/create_item2.png)
 
-Seems like even with this command the second commandlet was not saved. And it was not, I tried several other ways, I created a HKCU runkey and mimiced running powershell.exe with encoded command and it did not save it. I did they same for HKLM runkey and still nothing. I am a bit baffled to say the least, I can see the values in registry but it seems MDE is for some reason, not saving this telemetry.
+Seems like the second commandlet was not logged either.  I tried several other ways, I created a HKCU runkey and mimiced running powershell.exe with encoded command and it did not save it. I did they same for HKLM runkey and still nothing. I am a bit baffled to say the least, I can see the values in registry but it seems MDE is for some reason, not saving this telemetry.
 
 When I finally found way to get the data saved to registry the query worked. So this query is able to find base64 encoded strings but it is far from perfect. It also only matches if the full key value matches base64 encoded string, which is why I started creating version which matches if there are padded whitespace. Again of course this was a whole another adventure with my lacking regex skills and eded up being reaaaally complicated especially as the regex flavour used by KQL does not support lookbehinds or lookaheads, which makes it difficult to match if there is a whitespace before or after the padding. I ended up with the following query:
 
