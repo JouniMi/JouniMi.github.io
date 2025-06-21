@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "WScattered Spider: When Social Engineering Meets Supply Chain Risk"
+title:  "Scattered Spider: When Social Engineering Meets Supply Chain Risk"
 tags: [threat intelligence, scattered spider, incident preparation, featured]
 author: jouni
 image: assets/images/scatteredspider/scattered_logo.png
@@ -9,7 +9,6 @@ categories: [ incident preparation ]
 ---
 
 # Scattered Spider: When Social Engineering Meets Supply Chain Risk
-=============================
 
 I have been following recent acvitiy by Scattered Spider which led me to write about this topic. Lately, the group has been very active in attacking several different retailers in UK. The most notable one has been Mark & Spencers. The attack against M&S according to the news originally started somewhere around February-March where the threat actor was able to exfiltrate the Active Directory database, also known as ntds.dit. This resulted in a further attack as the threat actor was able to crack the usernames and passwords stored in the ntds.dit database.
 
@@ -20,7 +19,6 @@ The Scattered Spider group is known from their sophisticated social engineering 
 The Scattered Spider group has also been attacking the Supply Chain, as within the Mark & Spencers attacks. This emphasizes the importance of ensuring safe supply chain and also monitoring what is happening outside of your own network. The supply chain can be a very intereting target for the threat actors as by gaining access to a supplier, they can gain access to potentially tens or hundreds of organizations. I’ve seen several successful attacks originate through supply chain compromises in the past, and unfortunately, I am seeing these incidents becoming increasingly frequent.
 
 # Defending against the attacks
-=============================
 
 So what can a company do to defend agains these attacks? I think it is not a simple answer, given that they are using the human element to gain access. This makes 
 technical controls alone not enough, though they help a lot. I have had some ideas which could help to prepare for this type of attacks, either by trying to ensure that the attacks would not be successful or trying to limit the scope.
@@ -84,7 +82,6 @@ This goes a bit further and at least some of these may be hard to get access to.
 - **Remediation Actions:** What actions were taken to address any issues?
 
 # Conclusion
-=============================
 
 The attacks perpetrated by Scattered Spider, and groups like them, represent a significant and evolving threat landscape. They demonstrate a clear preference for exploiting the human element, skillfully blending social engineering with technical prowess to bypass traditional security measures. While technical controls like MFA and device restrictions are important layers of defense, they are not perfect. 
 
