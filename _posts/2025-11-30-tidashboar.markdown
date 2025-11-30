@@ -3,7 +3,7 @@ layout: post
 title:  "TI Dashboar: AI generated Cyber Threat Intelligence dashboard"
 tags: [threat intelligence, ti dashboar, featured]
 author: jouni
-image: assets/images/tidashboar/logo.png)
+image: assets/images/tidashboar/logo.png
 comments: false
 categories: [ threat intelligence ]
 ---
@@ -20,57 +20,13 @@ This project was created for my personal use as I've been struggling with keepin
 
 The entire system is built as a containerized microservices architecture using Docker Compose. This does *NOT* include the local LLM or the OpenSearch database. Here's how all the components work together:
 
-```mermaid
-graph TD
-    A[<b>Data Sources</b><br/>RSS Feeds<br/>Web Scraping<br/>] 
-    --> 
-    B[<b>Main Application</b><br/>FastAPI Service<br/>Content Processing]
-    -->
-    C[<b>OpenSearch Database</b><br/>Raw Article Storage<br/>Monthly Indexing]
-    -->
-    D[<b>AI Enrichment</b><br/>LLM Analysis<br/>Threat Intelligence]
-    -->
-    E[<b>Automated Services</b><br/>Enrichment 10min<br/>RAG Ingest 1hr<br/>Summary 5hrs<br/>GUI Generator 6hrs]
-    -->
-    F[<b>Output & Deployment</b><br/>Vue.js Dashboard<br/>Auto Deploy 12hrs<br/>GitHub Pages Site]
-
-    style A fill:#e8f5e8,stroke:#2e7d32,stroke-width:3px
-    style B fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
-    style C fill:#e3f2fd,stroke:#1565c0,stroke-width:3px
-    style D fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px
-    style E fill:#f3e5f5,stroke:#7b1fa2,stroke-width:3px
-    style F fill:#fff3e0,stroke:#ef6c00,stroke-width:3px
-```
-
+![]({{ site.baseurl }}/assets/images/tidashboar/architecture.png)
 
 ## Continuous Processing Pipeline
 
 The system operates on a sophisticated timeline that ensures continuous processing and updates:
 
-```mermaid
-gantt
-    title Cybersecurity Intelligence Processing Timeline
-    dateFormat X
-    axisFormat %
-    
-    section Continuous
-    RSS Feed Processing     :active, rss, 0, 86400
-    API Endpoints Available :active, api, 0, 86400
-    
-    section Scheduled
-    AI Enrichment          :crit, enrich-0, 600, 86400
-    RAG Vector Generation  :rag, 3600, 86400
-    Executive Summary      :summary, 18000, 86400
-    GUI Data Generation    :gui, 7200, 86400
-    GitHub Deployment      :deploy, 43200, 86400
-    
-    section Data Flow
-    Raw Data Storage       :raw, 0, 86400
-    Enriched Data Storage  :enriched, 600, 86400
-    Vector Search Ready    :vector, 3600, 86400
-    JSON Files Updated     :json, 7200, 86400
-    Public Site Updated    :public, 43200, 86400
-```
+![]({{ site.baseurl }}/assets/images/tidashboar/pipeline.png)
 
 ## Core Services Deep Dive
 
