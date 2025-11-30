@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Hunting for Windows Subsystem for Linux based attacks"
-tags: [threat hunting, kql, mde, wsl, featured]
+tags: [threat hunting, kql, mde, wsl]
 author: jouni
 image: assets/images/IMG_0107.png
 comments: false

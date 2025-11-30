@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Look into couple of suspicous registry activities"
-tags: [threat hunting, kql, mde, featured]
+tags: [threat hunting, kql, mde]
 author: jouni
 image: assets/images/registry/reg_target.png
 comments: false
