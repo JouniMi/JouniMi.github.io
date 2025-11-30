@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "The DFIR thing"
-tags: [dfir, ir, dfir thing, evtx, chainsaw, hayabusa, featured]
+tags: [dfir, ir, dfir thing, evtx, chainsaw, hayabusa]
 author: jouni
 image: assets/images/thedfirthinglogo.png
 comments: false
