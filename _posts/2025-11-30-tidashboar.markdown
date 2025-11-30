@@ -18,7 +18,7 @@ This project was created for my personal use as I've been struggling with keepin
 
 ## System Architecture
 
-The entire system is built as a containerized microservices architecture using Docker Compose. This does *NOT* include the local LLM or the OpenSearch database. Here's how all the components work together:
+The entire system is built as a containerized microservices architecture using Docker Compose. This does *NOT* include the local LLM or the OpenSearch database, which I have deployed as a separate solutions. Here's how all the components work together:
 
 ![]({{ site.baseurl }}/assets/images/tidashboar/architecture.png)
 
