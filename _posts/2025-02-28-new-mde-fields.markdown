@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Having a look at a few new fields in MDE"
-tags: [threat hunting, kql, mde, featured]
+tags: [threat hunting, kql, mde]
 author: jouni
 image: assets/images/new_mde_data/mde_data_logo.png
 comments: false
