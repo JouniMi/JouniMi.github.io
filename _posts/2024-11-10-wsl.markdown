@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Hunting for Windows Subsystem for Linux based attacks"
-tags: [threat hunting, kql, mde, wsl]
+tags: [threat hunting, kql, mde, wsl, sticky]
 author: jouni
 image: assets/images/IMG_0107.png
 comments: false
