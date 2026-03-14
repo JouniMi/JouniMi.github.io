@@ -3,7 +3,7 @@ layout: post
 title:  "Autonomous SOC, possible or just pointless AI hype?"
 tags: [ SOC, AI, featured]
 author: jouni
-image: assets/images/autosoc1/logo_socai.PNG
+image: assets/images/autosoc1/logo_socai.png
 comments: false
 categories: [ SOC ]
 ---
