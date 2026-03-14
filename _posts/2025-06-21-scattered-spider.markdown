@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Scattered Spider: When Social Engineering Meets Supply Chain Risk"
-tags: [threat intelligence, scattered spider, incident preparation, featured]
+tags: [threat intelligence, scattered spider, incident preparation]
 author: jouni
 image: assets/images/scatteredspider/scattered_logo.png
 comments: false
