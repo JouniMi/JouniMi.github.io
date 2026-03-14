@@ -3,26 +3,26 @@ layout: post
 title:  "Autonomous SOC, possible or just pointless AI hype?"
 tags: [ SOC, AI, featured]
 author: jouni
-image: assets/images/autosoc1/logo_socai.png
+image: assets/images/autosoc1/logo_socai.PNG
 comments: false
 categories: [ SOC ]
 ---
 
 # Autonomous SOC, possible or just pointless AI hype?
 
-One more topic which has intrigued my mind for a longer period of time. There has been lots of hype on AI agents and how they can be utilized in SOC. There has been lots of vendor hype around this topic which is to be expected in the time of AI. It is being sold as a near silver bullet, ensuring you have endless agents working on your cases making the world better.
+One more topic which has intrigued my mind for a longer period of time. There has been lots of hype on AI agents and how they can be utilized in SOC. It is being sold as a near silver bullet, ensuring you have endless agents working on your cases making the world better.
 
 So, it is time to explore this myself, what is the capability of the AI agents in the context of SOC monitoring? Can they be trusted? How much can they actually help?
 
 First thing which I needed to do is to, well, build a SOC. There are lots of different components, however, to keep it simple I just focus on small subset. I am building a POC which I hope can give me and maybe you as the reader insight into how possible this would be within the real life. So, off to the world of building a SOC we went.
 
-I was in a fortunate situation, I already had lots of the work done. I have OpenSearch which can be used as a poor man's SIEM, to which I am already sending data. I am using Sysmon to generate the data, on top of which the most important default event logs are being picked up and sent to the OpenSearch. On top of the OpenSearch as a SIEM I have a MS Defender for Endpoint subscription which allows me to use it on maximum of 5 devices, meaning I can't install it on all of my test env devices.
+I was in a fortunate situation, I already had lots of the work done. I had OpenSearch which can be used as a poor man's SIEM, to which I am already sending data. I am using Sysmon to generate the data, on top of which the most important default event logs are being picked up and sent to the OpenSearch. I also have a MS Defender for Endpoint subscription which allows me to use it on maximum of 5 devices, meaning I can't install it on all of my test env devices unfortunately.
 
-Great, I have the data.. somewhere. Defender for Endpoint is even able to generate alerts so I can use them for something! Well OpenSearch of course out of the box will not generate any alerts. However, it does have the Security Analytics feature where there is plenty of rules which can be enabled by default. Enabling the endpoint rules enables creating findings, which can be used as alerts. Not an expert on this area so not going to be too elaborate about that. Below is a picture though.
+Great, I have the data.. somewhere. Defender for Endpoint is even able to generate alerts so I can use them for something! OpenSearch out of the box will not generate any alerts. However, it does have the Security Analytics feature where there are plenty of rules which can be enabled. Enabling the endpoint rules enables creating findings, which can be used as alerts. Not an expert on building an OpenSearch SIEM so not going to be too elaborate about that. Below is a picture though.
 
 ![]({{ site.baseurl }}/assets/images/autosoc1/opensearchfindings.png)
 
-Yay we have alerts from multiple sources! Now what? Should we integrate the Defender for Endpoint alerts to OpenSearch? That was my first instinct, however, many of the SOCs (hopefully most) utilize SOAR as a case management tool. It would make sense to integrate the alerts to OpenSearch and then to a SOAR, however I wanted to skip one step to save efforts. I have used some open source SOAR before but I wasn't convinced - it was more of an automation tool without the case management part. I did some research and found a tool called [Tracecat](https://www.tracecat.com/). It is exactly what I was looking for, free to use SOAR tool which has at least some of the basic functionality available on a commercial SOAR. There is case management, there are workflows which are the automations. The automations support lots of activity including running Python code making it very versatile. There are bugs and some issues here and there but it is very much workable product.
+Yay we have alerts from multiple sources! Now what? Should we integrate the Defender for Endpoint alerts to OpenSearch? That was my first instinct, however, many of the SOCs (hopefully most) utilize SOAR as a case management tool amongst automation. It would make sense to integrate the alerts to OpenSearch and then to a SOAR, however I wanted to skip one step to save efforts. I have used some open source SOAR before but I wasn't convinced - it was more of an automation tool without the case management part. I did some research and found a tool called [Tracecat](https://www.tracecat.com/). It is exactly what I was looking for, free to use SOAR tool which has at least some of the basic functionality available on a commercial SOAR. There is case management, there are workflows which are the automations. The automations support lots of activity including running Python code making it very versatile. There are bugs and some issues here and there but it is very much workable product.
 
 After installing it the first thing was to integrate the alerts as cases. This required some efforts and debugging as it wasn't completely clear how the workflows worked. I used the workflows to pull the alerts from sources, it is possible to push too using webhooks.
 
@@ -35,7 +35,7 @@ I started with the Defender for XDR alerts:
 6. Have all relevant information and create a new case for each alert with relevant details.
 7. Schedule to run the workflow every 3 minutes, pulling the alerts created in the last 3 minutes.
 
-The workflow looks like this:
+The workflow looks like this visually:
 ![]({{ site.baseurl }}/assets/images/autosoc1/defenderalertworkflow.png)
 
 At this point I had integrated the defender alerts which was great. Not too hard and fun little project. Next step was to add OpenSearch findings as cases.
@@ -54,41 +54,17 @@ So there we had all the alerts coming in as cases, being properly mapped with de
 Example case:
 ![]({{ site.baseurl }}/assets/images/autosoc1/examplecase.png)
 
-Here is an ascii diagram of the architecture. I could do a proper one but.. it's a bit boring.
-   +--------------+             +----------------+                      
-   |  OpenSearch  |             | MS Defender    |                      
-   |    (SIEM)    |             | for Endpoint   |                      
-   +------+-------+             +-------+--------+                      
-          |                             |                                
-          | Findings                    | Alerts                         
-          | (API Pull)                  | (Graph API Pull)               
-          |                             |                                
-          v                             v                                
-   +---------------------------------------------+                      
-   |                 TRACECAT                    |                      
-   |                  (SOAR)                     |                      
-   |                                             |                      
-   |   - Workflows (Python, Loops, API calls)    |                      
-   |   - Normalizes data & Severity              |                      
-   +--------------------+------------------------+                      
-                        |                                             
-                        v                                             
-                 +-------------+                                      
-                 |    CASES    |                                      
-                 | (Unified)   |                                      
-                 +-------------+                                      
-
 # The hard part?
 
 Enter the Agentic AI. Much of this part is vibe coded, some of the previous part is too but honestly it was not helping too much as it was a bit baffled on Tracecat. Anyway, I made a decision that I want to base this on a framework. I've built things before without using any frameworks but they have been mainly workflows, not agents which makes their own decisions. So I decided to go ahead with [Microsoft Agent Framework](https://learn.microsoft.com/en-us/agent-framework/overview/?pivots=programming-language-python), mainly because I've heard of it before and explored it a bit and found it interesting. Also I like that it has the combination of agents and workflows.
 
 There's a few moving parts to all of this, also lots of trial and error. The tools did not work very well to start with - they required quite a lot of fine tuning and debugging to make them work. I have a tool for running Advanced Hunt KQL queries on Defender - the model did not do a good job in creating the queries. However, I introduced a KQL schema I created for other purposes on a different project and it started to work very well. The AI model creates queries which work. I also introduced a premade KQL query which the AI can use to investigate interesting device and a specific timestamp - the tool pulls events around that specific time.
 
-One big problem on early iteration was that the model did not write case comments to Tracecat when it was trying to do something. I got quite nice starting analysis but when it had to use tools it did not add proper comments. Lots of context problems especially with OpenSearch search tools, I had the model configured with 128k max tokens but at times the context went to 1 million tokens. Creating a fresh agent for each case investigation helped a bit, but lots of tuning on opensearch searches was needed so it did not get 10k results.
+One big problem on early iteration was that the model did not write case comments to Tracecat when it was trying to do something. I got quite nice starting analysis but when it had to use tools it did not add proper comments. Lots of context problems especially with OpenSearch search tools, I had the model configured with 128k max tokens but at times the context went to 1 million tokens. Creating a fresh agent for each case investigation helped a bit, but lots of tuning on opensearch queries was needed so it did not get as much results.
 
-Another big issue was to actually make the agent update the status correctly. I wanted it to set the status to On Hold if it wants human verification. It was kind of challenging to get it working as I wanted but in the end it works relatively well. Also, it has isolation capability but after the start it has not tried to use it yet. One reason could be though that there is only noise currently, so no actual TPs.
+Another big issue was to actually make the agent update the status correctly. I wanted it to set the status to On Hold if it wants human verification. It was kind of challenging to get it working as I wanted but in the end it works relatively well.
 
-There is plenty of tools introduced:
+There are plenty of tools introduced to the agent:
 * get_alert: get opensearch alerts
 * get_events_for_host: get opensearch events for host
 * get_events_for_user: get opensearch events for user
@@ -108,9 +84,9 @@ There is plenty of tools introduced:
 * add_case_comment: add a comment to tracecat case
 * close_case: close a tracecat case
 
-There is also a secondary "tier 2" deep investigation agent. However, I did not yet add it to "production". I am unsure if with agents that is needed or not. Currently the agent takes around 2-5 minutes in processing a single case. It is also good to note that I am using a locally run agent to do this. I do have quite powerful machine for AI but of course far from the big cloud models. I just love the ability to use it in whatever a way I want.
+There is also a secondary "tier 2" deep investigation agent. However, I did not yet add it to "production". I am unsure if with agents that is needed or not. Currently the agent takes around 2-5 minutes in processing a single case. It is also good to note that I am using a locally run agent to do this. I do have quite powerful machine for AI but the capability is far from the big cloud models. I just love the ability to use it in whatever a way I want.
 
-It needs lots of more tuning and development, however that is left for future. As is testing some more malicious looking alerts.
+The solution needs lots of more tuning and development, however that is left for future. As is testing some simulated attacks.
 
 ## The initial results
 
@@ -128,7 +104,7 @@ It continues analyzing the data and adding comments from investigating.
 It can take lots of steps and finally it comes to a conclusion. This time it was convinced that this was malicious (which is a bit funny as it happens all the time so more tuning needed) and tried to isolate the device. It failed because this device is not in Defender and currently the isolation tool is broken. It marked it for human analysis which should land it in On Hold status but it closed it instead, showing there are bugs still.
 ![]({{ site.baseurl }}/assets/images/autosoc1/results.png)
 
-This is just one example and not a great alert to start with. It is producing hundreds of false positives within my test environment. There are others and actually the analysis by the language model in my opinion is often quite good. Here is another (written) example of analysis concluded (love the MD format on Tracecat!):
+This is just one example and not a great alert to start with. It is producing hundreds of false positives within my test environment. There are others and actually the analysis by the language model in my opinion is often quite good. Here is another example of analysis concluded (love the MD format on Tracecat!):
 
 ---
 
