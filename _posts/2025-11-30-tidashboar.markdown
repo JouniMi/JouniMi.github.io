@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "TI Dashboar: AI generated Cyber Threat Intelligence dashboard"
-tags: [threat intelligence, ti dashboar, featured]
+tags: [threat intelligence, ti dashboar]
 author: jouni
 image: assets/images/tidashboar/logo.png
 comments: false
