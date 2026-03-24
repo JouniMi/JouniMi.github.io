@@ -3,7 +3,7 @@ layout: post
 title:  "Autonomous SOC, part 2, isolating agent"
 tags: [ SOC, AI, featured]
 author: jouni
-image: assets/images/autosoc2/logo_socai.png
+image: assets/images/autosoc2/logo.png
 comments: false
 categories: [ SOC ]
 ---
