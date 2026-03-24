@@ -31,13 +31,13 @@ The deeper analysis was done by running a KQL query. I created two tools for the
 The next analysis is so long that it would not fit to a picture so here are the notes directly:
 
 --- 
-## Investigation Summary
+Investigation Summary
 
 **Status**: CONFIRMED THREAT - LATERAL MOVEMENT ACTIVITY
 
 **Resolution**: This is a confirmed Impacket-based lateral movement attack requiring immediate remediation.
 
-## Findings
+Findings
 
 1. **Impacket Toolkit Usage Confirmed**:
    - Multiple cmd.exe processes spawned via WmiPrvSE.exe (WMI)
@@ -65,12 +65,12 @@ The next analysis is so long that it would not fit to a picture so here are the 
    - Prior alerts were for "Use of living-off-the-land binary" related to certutil/powershell maintenance scripts
    - Those appear to be separate, likely legitimate maintenance activity
 
-## Evidence Analyzed
+Evidence Analyzed
 - **Defender Alerts**: Retrieved 5 alerts for device, including the high-severity Impacket alert
 - **Advanced Hunt Query**: 119 events found showing WMI-based process creation and network activity
 - **Process Chain**: svchost.exe (Winmgmt) → WmiPrvSE.exe → cmd.exe → various commands
 
-## Actions Required
+Actions Required
 This is a CONFIRMED lateral movement attack using Impacket toolkit. The device needs to be isolated immediately to prevent further spread.
 
 **Next Action**: Isolate device exws02.exmp.domain (device_id: 6e272394589cb0858e0cf8ffdde03ef2de13354e)
@@ -83,7 +83,7 @@ The next step I also need to add directly as it wont fit a picture:
 
 ---
 
-## REMEDIATION ACTION TAKEN
+REMEDIATION ACTION TAKEN
 
 **Action**: Device ISOLATED successfully
 - Device: exws02.exmp.domain
@@ -94,13 +94,13 @@ The next step I also need to add directly as it wont fit a picture:
 
 **Reason**: Confirmed Impacket lateral movement attack with reconnaissance commands executed via WMI.
 
-## Final Investigation Summary
+Final Investigation Summary
 
 **Status**: THREAT CONFIRMED - REMEDIATION INITIATED
 
 **Resolution**: Device isolated to prevent further lateral movement. Case requires human analyst review for incident response coordination.
 
-## Key Findings
+Key Findings
 - **Attack Type**: Impacket toolkit lateral movement (psexec/wmiexec)
 - **Device**: exws02.exmp.domain
 - **User**: kikki@exmp.domain
@@ -108,16 +108,16 @@ The next step I also need to add directly as it wont fit a picture:
 - **Techniques**: T1047 (WMI), T1021.002 (SMB/Windows Admin Shares), T1018 (Remote System Discovery), T1033 (System Owner/User Discovery)
 - **Commands**: whoami, ipconfig, ping with output redirection to ADMIN$
 
-## Evidence
+Evidence
 - Defender Alert: "Ongoing hands-on-keyboard attack via Impacket toolkit" (High severity)
 - Advanced Hunt: 119 events showing WMI-based process creation
 - Process chain: svchost.exe → WmiPrvSE.exe → cmd.exe → reconnaissance commands
 
-## Actions Taken
+Actions Taken
 1. ✅ Device isolated via Microsoft Defender
 2. ⏳ Awaiting human analyst review for incident response coordination
 
-## Recommendation
+Recommendation
 - Human analyst should review isolation status and coordinate incident response
 - Investigate user "kikki" account for potential compromise
 - Check target host 192.168.3.100 for signs of compromise
@@ -147,13 +147,13 @@ The agent noted the previous resolved alerts and thinks this is different, which
 
 ---
 
-## Advanced Hunt Query Results
+Advanced Hunt Query Results
 
 **Query**: Advanced hunt on exws03.exmp.domain around timestamp 2026-03-24T18:40:14.8732704Z
 
 **Results**: Found 17 events around the suspicious activity. Key findings:
 
-### CONFIRMED MALICIOUS ACTIVITY:
+CONFIRMED MALICIOUS ACTIVITY:
 
 1. **Process Creation (18:40:14.9188519Z)**:
    - regsvr32.exe (PID 10980) launched by cmd.exe (PID 7072)
@@ -171,13 +171,13 @@ The agent noted the previous resolved alerts and thinks this is different, which
 3. **DLL Load (18:40:15.4561499Z)**:
    - regsvr32.exe loaded scrobj.dll from C:\Windows\System32
 
-### ATTACK INDICATORS:
+ATTACK INDICATORS:
 - **Technique**: T1218.010 (Signed Binary Proxy Execution - Regsvr32)
 - **Delivery**: SCT file from AWS S3 bucket (office_update.sct)
 - **Execution Context**: Remote session via Guacamole RDP
 - **User**: kikki@exmp.domain (interactive user, not SYSTEM)
 
-### KEY DIFFERENTIATOR FROM FALSE POSITIVES:
+KEY DIFFERENTIATOR FROM FALSE POSITIVES:
 - Previous LOLBin alerts were from SYSTEM account running maintenance.ps1
 - This alert is from user kikki via RDP session
 - The S3 URL pattern (bucket-name/libraries/office_update.sct) is a known attack pattern
