@@ -3,7 +3,7 @@ layout: post
 title:  "Machine Learning for Threat Hunting"
 tags: [ TH, ML, featured]
 author: jouni
-image: assets/images/mlth/mlthlogo.png
+image: assets/images/mlth/mlthlogo.jpeg
 comments: false
 categories: [ Threat Hunting ]
 ---
